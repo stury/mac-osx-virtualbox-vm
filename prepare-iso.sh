@@ -117,6 +117,151 @@ function createISO()
     echo $ mv /tmp/${isoName}.cdr ~/Desktop/${isoName}.iso
     mv /tmp/${isoName}.cdr ~/Desktop/${isoName}.iso
   fi
+  return ${error}
+}
+
+#
+# remove
+#
+# This function removes a file, and any recursive directory structure presented.
+# Input:  $1 - The name of the file/folder to remove.
+#
+function remove() {
+  local result=0
+  if [ $# -eq 1 ] ; then
+    local fileOrFolder=${1}
+    if [ -e "${fileOrFolder}" ] ; then 
+      echo
+      echo Remove ${fileOrFolder}
+      echo --------------------------------------------------------------------------	  
+      echo "rm -Rf ${fileOrFolder}"
+      rm -Rf "${fileOrFolder}"
+      result=$?
+    else
+      # echo "Warning: remove() called with ${fileOrFolder}, which doesn't exist."
+    fi
+  else
+  	echo "ERROR: remove() called with no file or folder to remove!"
+  	result=1
+  fi
+  return ${result}
+}
+
+#
+# createInstallMedia
+#
+# This function creates the ISO image for the user using the Apple supplied `createinstallmedia` command line utility in the installer package.  
+# Using this method to handle the 10.13 High Sierra installer.
+# Inputs:  $1 = The name of the installer - located in your Applications folder or in your local folder/PATH.
+#          $2 = The Name of the ISO you want created.
+#		   $3 = The name of the install volume:  eg. Install\ macOS\ High\ Sierra
+#
+# Based off of: https://tylermade.net/2017/10/05/how-to-create-a-bootable-iso-image-of-macos-10-13-high-sierra-installer/
+#
+function createInstallMedia() {
+
+  if [ $# -eq 2 ] ; then
+    local installerAppName=${1}
+    local isoName=${2}
+    local installVolume=${1%%.*}
+    local createInstallMedia=""
+    local error=0
+
+    # ==============================================================
+    # 10.13: How to make an ISO from the Install app
+    # ==============================================================
+    echo
+    echo Verify that the createinatllmedia command exists in the installer
+    echo -----------------------------------------------------------
+
+    if [ -e "${installerAppName}" ] ; then
+	  createInstallMedia="${installerAppName}"/Contents/Resources/createinstallmedia
+    elif [ -e /Applications/"${installerAppName}" ] ; then
+	  createInstallMedia=/Applications/"${installerAppName}"/Contents/Resources/createinstallmedia
+    else
+      echo Installer Not found!
+      error=1
+    fi
+
+    echo "Debug: installerAppName = ${installerAppName} , isoName = ${isoName} , installVolume=${installVolume} , createInstallMedia=${createInstallMedia}"
+
+	if [ -e "${createInstallMedia}" ] ; then 
+	  # There are a couple of other steps we now need to do here...
+	  
+	  echo "createInstallMedia=${createInstallMedia}"
+	  
+# 	  if [ ${error} -ne 0 ] ; then
+# 	    echo "Failed to mount the InstallESD.dmg from the instaler at ${installerAppName}.  Exiting. (${error})"
+# 	    return ${error}
+# 	  fi
+
+  	  echo
+	  echo Create the cdr image to ISO/CD master
+	  echo --------------------------------------------------------------------------
+	  echo hdiutil create -o /tmp/macOS.cdr -size 5200m -layout SPUD -fs HFS+J
+	  hdiutil create -o /tmp/macOS.cdr -size 5200m -layout SPUD -fs HFS+J
+	  
+  	  echo
+	  echo Attach the image
+	  echo --------------------------------------------------------------------------	  
+	  echo hdiutil attach /tmp/macOS.cdr.dmg -noverify -mountpoint /Volumes/install_build
+	  hdiutil attach /tmp/macOS.cdr.dmg -noverify -mountpoint /Volumes/install_build
+	  
+  	  echo
+	  echo Create the Install Media
+	  echo --------------------------------------------------------------------------	  
+	  echo "${createInstallMedia}" --volume /Volumes/install_build
+	  "${createInstallMedia}" --volume /Volumes/install_build
+	  
+  	  echo
+	  echo Move the tmp file to the desktop
+	  echo --------------------------------------------------------------------------	  
+	  echo mv /tmp/macOS.cdr.dmg ~/Desktop/InstallSystem.dmg
+	  mv /tmp/macOS.cdr.dmg ~/Desktop/InstallSystem.dmg
+
+	  if [ -e /Volumes/"${installVolume}" ] ; then 
+  	    echo
+	    echo Detach the new Instal volume
+	    echo --------------------------------------------------------------------------	  
+	    echo hdiutil detach /Volumes/"${installVolume}"
+	    hdiutil detach /Volumes/"${installVolume}"
+	  fi
+
+	  if [ -e ~/Desktop/InstallSystem.dmg ] ; then 
+	    echo
+	    echo Convert the dmg into an iso image
+	    echo --------------------------------------------------------------------------	  
+	    echo hdiutil convert ~/Desktop/InstallSystem.dmg -format UDTO -o ~/Desktop/${isoName}.iso
+	    hdiutil convert ~/Desktop/InstallSystem.dmg -format UDTO -o ~/Desktop/${isoName}.iso
+	  fi 
+	  
+	  if [ -e ~/Desktop/${isoName}.iso.cdr ] ; then 
+	  	echo
+	  	echo Rename ${isoName}.iso.cdr to ${isoName}.iso
+	    echo --------------------------------------------------------------------------	  
+	  	echo mv ~/Desktop/${isoName}.iso.cdr ~/Desktop/${isoName}.iso
+	  	mv ~/Desktop/${isoName}.iso.cdr ~/Desktop/${isoName}.iso
+	  fi
+	  
+	  echo
+	  echo Cleanup!
+	  echo --------------------------------------------------------------------------	  
+	  
+	  if [ -e /Volumes/install_build ] ; then 
+	  	echo Removing the instal_build mount point: hdiutil detach /Volumes/install_build
+	  	hdiutil detach /Volumes/install_build
+	  fi
+	  remove ~/Desktop/InstallSystem.dmg
+	  remove /tmp/macOS.cdr.dmg
+	  remove /tmp/macOS.cdr
+	
+	else
+      echo "${createInstallMedia} Not found!  Cannot proceed."
+      error=2		
+	fi
+  fi
+  
+  return ${error}
 }
 
 #
@@ -142,23 +287,28 @@ function installerExists()
 # See if we can find either the ElCapitan or the 10.12 installer.
 # If successful, then create the iso file from the installer.
 #
-
-installerExists "Install macOS Sierra.app"
+installerExists "Install macOS High Sierra.app"
 result=$?
 if [ ${result} -eq 0 ] ; then
-  createISO "Install macOS Sierra.app" "Sierra"
+  createInstallMedia "Install macOS High Sierra.app" "HighSierra"
 else
-  installerExists "Install OS X El Capitan.app"
-  result=$?
-  if [ ${result} -eq 0 ] ; then
-    createISO "Install OS X El Capitan.app" "ElCapitan"
-  else
-    installerExists "Install OS X Yosemite.app"
-    result=$?
-    if [ ${result} -eq 0 ] ; then
-      createISO "Install OS X Yosemite.app" "Yosemite"
-    else
-      echo "Could not find installer for Yosemite (10.10), El Capitan (10.11) or Sierra (10.12)."
-    fi
-  fi
+	installerExists "Install macOS Sierra.app"
+	result=$?
+	if [ ${result} -eq 0 ] ; then
+	  createISO "Install macOS Sierra.app" "Sierra"
+	else
+	  installerExists "Install OS X El Capitan.app"
+	  result=$?
+	  if [ ${result} -eq 0 ] ; then
+		createISO "Install OS X El Capitan.app" "ElCapitan"
+	  else
+		installerExists "Install OS X Yosemite.app"
+		result=$?
+		if [ ${result} -eq 0 ] ; then
+		  createISO "Install OS X Yosemite.app" "Yosemite"
+		else
+		  echo "Could not find installer for Yosemite (10.10), El Capitan (10.11) or Sierra (10.12)."
+		fi
+	  fi
+	fi
 fi
