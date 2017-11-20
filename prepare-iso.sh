@@ -130,15 +130,15 @@ function remove() {
   local result=0
   if [ $# -eq 1 ] ; then
     local fileOrFolder=${1}
-    if [ -e "${fileOrFolder}" ] ; then 
+    if [ -e "${fileOrFolder}" ] ; then
       echo
       echo Remove ${fileOrFolder}
-      echo --------------------------------------------------------------------------	  
+      echo --------------------------------------------------------------------------
       echo "rm -Rf ${fileOrFolder}"
       rm -Rf "${fileOrFolder}"
       result=$?
-    else
-      # echo "Warning: remove() called with ${fileOrFolder}, which doesn't exist."
+    # else
+    #  echo "Warning: remove() called with ${fileOrFolder}, which doesn't exist."
     fi
   else
   	echo "ERROR: remove() called with no file or folder to remove!"
@@ -150,7 +150,7 @@ function remove() {
 #
 # createInstallMedia
 #
-# This function creates the ISO image for the user using the Apple supplied `createinstallmedia` command line utility in the installer package.  
+# This function creates the ISO image for the user using the Apple supplied `createinstallmedia` command line utility in the installer package.
 # Using this method to handle the 10.13 High Sierra installer.
 # Inputs:  $1 = The name of the installer - located in your Applications folder or in your local folder/PATH.
 #          $2 = The Name of the ISO you want created.
@@ -185,11 +185,11 @@ function createInstallMedia() {
 
     echo "Debug: installerAppName = ${installerAppName} , isoName = ${isoName} , installVolume=${installVolume} , createInstallMedia=${createInstallMedia}"
 
-	if [ -e "${createInstallMedia}" ] ; then 
+	if [ -e "${createInstallMedia}" ] ; then
 	  # There are a couple of other steps we now need to do here...
-	  
+
 	  echo "createInstallMedia=${createInstallMedia}"
-	  
+
 # 	  if [ ${error} -ne 0 ] ; then
 # 	    echo "Failed to mount the InstallESD.dmg from the instaler at ${installerAppName}.  Exiting. (${error})"
 # 	    return ${error}
@@ -200,67 +200,67 @@ function createInstallMedia() {
 	  echo --------------------------------------------------------------------------
 	  echo hdiutil create -o /tmp/macOS.cdr -size 5200m -layout SPUD -fs HFS+J
 	  hdiutil create -o /tmp/macOS.cdr -size 5200m -layout SPUD -fs HFS+J
-	  
+
   	  echo
 	  echo Attach the image
-	  echo --------------------------------------------------------------------------	  
+	  echo --------------------------------------------------------------------------
 	  echo hdiutil attach /tmp/macOS.cdr.dmg -noverify -mountpoint /Volumes/install_build
 	  hdiutil attach /tmp/macOS.cdr.dmg -noverify -mountpoint /Volumes/install_build
-	  
+
   	  echo
 	  echo Create the Install Media
-	  echo --------------------------------------------------------------------------	  
+	  echo --------------------------------------------------------------------------
 	  echo "${createInstallMedia}" --volume /Volumes/install_build
 	  "${createInstallMedia}" --volume /Volumes/install_build
-	  
+
   	  echo
 	  echo Move the tmp file to the desktop
-	  echo --------------------------------------------------------------------------	  
+	  echo --------------------------------------------------------------------------
 	  echo mv /tmp/macOS.cdr.dmg ~/Desktop/InstallSystem.dmg
 	  mv /tmp/macOS.cdr.dmg ~/Desktop/InstallSystem.dmg
 
-	  if [ -e /Volumes/"${installVolume}" ] ; then 
+	  if [ -e /Volumes/"${installVolume}" ] ; then
   	    echo
 	    echo Detach the new Instal volume
-	    echo --------------------------------------------------------------------------	  
+	    echo --------------------------------------------------------------------------
 	    echo hdiutil detach /Volumes/"${installVolume}"
 	    hdiutil detach /Volumes/"${installVolume}"
 	  fi
 
-	  if [ -e ~/Desktop/InstallSystem.dmg ] ; then 
+	  if [ -e ~/Desktop/InstallSystem.dmg ] ; then
 	    echo
 	    echo Convert the dmg into an iso image
-	    echo --------------------------------------------------------------------------	  
+	    echo --------------------------------------------------------------------------
 	    echo hdiutil convert ~/Desktop/InstallSystem.dmg -format UDTO -o ~/Desktop/${isoName}.iso
 	    hdiutil convert ~/Desktop/InstallSystem.dmg -format UDTO -o ~/Desktop/${isoName}.iso
-	  fi 
-	  
-	  if [ -e ~/Desktop/${isoName}.iso.cdr ] ; then 
+	  fi
+
+	  if [ -e ~/Desktop/${isoName}.iso.cdr ] ; then
 	  	echo
 	  	echo Rename ${isoName}.iso.cdr to ${isoName}.iso
-	    echo --------------------------------------------------------------------------	  
+	    echo --------------------------------------------------------------------------
 	  	echo mv ~/Desktop/${isoName}.iso.cdr ~/Desktop/${isoName}.iso
 	  	mv ~/Desktop/${isoName}.iso.cdr ~/Desktop/${isoName}.iso
 	  fi
-	  
+
 	  echo
 	  echo Cleanup!
-	  echo --------------------------------------------------------------------------	  
-	  
-	  if [ -e /Volumes/install_build ] ; then 
+	  echo --------------------------------------------------------------------------
+
+	  if [ -e /Volumes/install_build ] ; then
 	  	echo Removing the instal_build mount point: hdiutil detach /Volumes/install_build
 	  	hdiutil detach /Volumes/install_build
 	  fi
 	  remove ~/Desktop/InstallSystem.dmg
 	  remove /tmp/macOS.cdr.dmg
 	  remove /tmp/macOS.cdr
-	
+
 	else
       echo "${createInstallMedia} Not found!  Cannot proceed."
-      error=2		
+      error=2
 	fi
   fi
-  
+
   return ${error}
 }
 
