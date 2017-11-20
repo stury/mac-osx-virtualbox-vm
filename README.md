@@ -35,6 +35,7 @@ To build a VM running macOS, follow the directions below:
 - The default Video Memory of 16MB is far below Apple's official requirement of 128MB. Increasing this value may help if you run into problems and is also the most effective performance tuning.
 - Depending on your hardware, you may also want to increase RAM and the share of CPU power the VM is allowed to use.
 - When the installation is complete, and you have a fresh new macOS VM, you can shut it down and create a snapshot. This way, you can go back to the initial state in the future. I use this technique to test the [`mac-dev-playbook`](https://github.com/geerlingguy/mac-dev-playbook), which I use to set up and configure my own Mac workstation for web and app development.
+- High Sierra installation is a bit tricky.  You can do the first part of the installation without any trouble, but the second part is not obvious.  This article on installing [High Sierra](http://tobiwashere.de/2017/10/virtualbox-how-to-create-a-macos-high-sierra-vm-to-run-on-a-mac-host-system/) will walk you through the steps needed. 
 
 ##Larger VM Screen Resolution
 
