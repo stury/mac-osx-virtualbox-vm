@@ -1,13 +1,13 @@
 # macOS VirtualBox VM Instructions
 
-Current macOS version: *Sierra (10.12)*, tested with VirtualBox *5.1.6 r110634*
+Current macOS version: *High Sierra (10.13)*, tested with VirtualBox *5.1.30 r118389*
 
 To build a VM running macOS, follow the directions below:
 
-  1. Download the installer from Mac App Store (it should be available in the 'Purchases' section if you've acquired it previously). The installer will be placed in your Applications folder.  (Should work for Yosemite, El Capitan and Sierra - 10.10-10.12.)
+  1. Download the installer from Mac App Store (it should be available in the 'Purchases' section if you've acquired it previously). The installer will be placed in your Applications folder.  (Should work for Yosemite, El Capitan, Sierra and High Sierra - 10.10-10.13.)
   2. Make the script executable and run it: `chmod +x prepare-iso.sh && ./prepare-iso.sh`.
 
-      If the script fails to find the installer you can specify its path as the first parameter. By default, the output is saved as <Yosemite|El Capitan|Sierra>.iso on the Desktop. You can change this using the second parameter.
+      If the script fails to find the installer you can specify its path as the first parameter. By default, the output is saved as <Yosemite|El Capitan|Sierra|HighSierra>.iso on the Desktop. You can change this using the second parameter.
       Example:
 
         ```./prepare-iso.sh /Applications/Install\ macOS Sierra\ 2.1\ Beta\ 2.app /Users/Steve/sierra-2.1-b2.iso```
@@ -37,7 +37,7 @@ To build a VM running macOS, follow the directions below:
 - When the installation is complete, and you have a fresh new macOS VM, you can shut it down and create a snapshot. This way, you can go back to the initial state in the future. I use this technique to test the [`mac-dev-playbook`](https://github.com/geerlingguy/mac-dev-playbook), which I use to set up and configure my own Mac workstation for web and app development.
 - High Sierra installation is a bit tricky.  You can do the first part of the installation without any trouble, but the second part is not obvious.  This article on installing [High Sierra](http://tobiwashere.de/2017/10/virtualbox-how-to-create-a-macos-high-sierra-vm-to-run-on-a-mac-host-system/) will walk you through the steps needed. 
 
-##Larger VM Screen Resolution
+## Larger VM Screen Resolution
 
 To control the screen size of your macOS VM:
 
